@@ -2,7 +2,7 @@
  * Liksu tools
  * Lools::Debug
  * Lib for simple debug js with console.
- * Created by Liksu.
+ * Created by Peter Bortchagovsky.
  * Date: feb 2009
  */
 
@@ -36,13 +36,16 @@ log = function() { if (typeof window["xdebug"] != "undefined") {
 	if ( xdebug.has("timings") ) str.unshift(u.getDT() + " > ");
 
 	if (window['console'] != undefined) {
+		if (console.log.apply) log = function() {console.log.apply(console, arguments)};
+		else log = Function.prototype.bind.call(console.log, console);
+
 		if (typeof console.debug == "function" && xdebug.has("debug")) {
 			for (var i = 2; i < str.length; i += 2) {
 				if (!((typeof str[i-1] == 'string' && (str[i-1].match(/[:,=]\s*$/) || str[i-1].match(/\s+$/))) || (typeof str[i] == 'string' && (str[i].match(/^\s+/))))) str.splice(i, 0, ', ');
 				else str.splice(i, 0, '');
 			}
-			if (console['debug']) console.debug.apply(this, str);
-			else if (console['log']) console.log.apply(this, str);
+			if (console['debug']) console.debug.apply(console, str);
+			else if (console['log']) console.log.apply(console, str);
 		}
 		else if (typeof console.log == "function" && xdebug.has("log")) console.log(str.join("\n"))
 	};

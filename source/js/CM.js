@@ -17,7 +17,7 @@ var CM = new (function () {
 
 	self.children = {};
 	self.settings = {
-		  revision: +("$Revision: 653 $".match(/\d+/)[0])
+		  revision: +("$Revision: 654 $".match(/\d+/)[0])
 		, lang: 'en'
 		, mode: 'default'
 		, theme: 'default'
@@ -776,7 +776,7 @@ var CM = new (function () {
 
 				widget.css.push(file);
 
-				if (!$('#' + file_id).length) $('<link>').attr({href: u.t(CM.settings.urls.css, CM.stash) + file, type: 'text/css', rel: 'stylesheet', id: file_id}).appendTo('head');
+				if (!$('#' + file_id).length) $('<link>').attr({href: u.t(CM.settings.urls.css, CM.exstash({template_name: widget.wo.template_name, widget_name: widget.wo.widget_name, widget_id: widget.wo.widget_id})) + file, type: 'text/css', rel: 'stylesheet', id: file_id}).appendTo('head');
 				else {
 					log('duplicate loading ' + file + ' in ' + u.object_keys(CM.s.s[file].widgets).map(function(e, i) {return e+'.html'}).join(', '));
 					$('#' + file_id + '[disabled]').enable();

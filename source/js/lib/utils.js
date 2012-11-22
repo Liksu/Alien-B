@@ -1,7 +1,6 @@
 /**
- * User: Peter B.
- * Date: 05.07.11
- * Time: 18:49
+ * Created by Peter Bortchagovsky
+ * at 05.07.11 18:49
  */
 
 /**
@@ -252,6 +251,15 @@ String.prototype.rand = function(n, unic) {
 	if (unic == undefined) unic = true;
 	if (n != undefined) return u.rand(n, this.split(''), unic).join('');
 	else return u.rand(this.length, this.split(''), unic).join('');
+};
+Number.prototype.rand = function(n, unic) {
+    if (n == undefined) return ( Math.floor( Math.random() * this) );
+    
+    var arr = [];
+    for (var i = 0; i < this; i++) arr[i] = i;
+
+	if (unic == undefined) unic = true;
+	return u.rand(n, arr, unic);
 };
 
 /**

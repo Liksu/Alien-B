@@ -6,6 +6,16 @@
 function(CM) {
 	var self = this;
 
+	CM.root.checkers = {
+		  'email': function($el, email) {
+			var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\ ".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA -Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
+			return re.test(email)
+		  }
+		, 'obligatory': function($el, value) {
+			return !!value
+		  }
+	};
+
 	CM.W.constructor_hook.push(function() {
 		var widget = this;
 

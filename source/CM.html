@@ -27,11 +27,14 @@
 
 	<script type="text/javascript" src="js/lib/jquery/jquery.cookie.js"></script>
 	<script type="text/javascript" src="js/lib/jquery/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="js/lib/jquery/jquery.history.js"></script>
 	<script type="text/javascript" src="js/lib/jquery/jquery.tools.min.js"></script>
 
+	<script type="text/javascript" src="js/lib/fixture.js"></script>
 	<script type="text/javascript" src="js/lib/json2.js"></script>
 	<script type="text/javascript" src="js/lib/utils.js"></script>
 	<script type="text/javascript" src="js/lools/debug.js"></script>
+	<script type="text/javascript" src="js/lools/Fixture.responses.js"></script>
 	<script type="text/javascript" src="js/CM.js"></script> <!-- core of CM widget -->
 
 	 <!-- data for CM widget -->
@@ -43,7 +46,7 @@
 			CM.start({
 			  build: "3.23"
 			, version: "alpha"
-			, required_plugins: ''
+			, required_plugins: 'alert'
 			, default_children: [[null]] // array like [[widget_id]], where first [] = array of trays, second [] = array of widgets in tray. [[null]] set core to ask server for default children.
 			, urls: {
 					def: '/cgi-bin/chat/api.pl?method=status'

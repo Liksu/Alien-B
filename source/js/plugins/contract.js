@@ -14,7 +14,7 @@ function(options) {
 	$.extend(true, settings, options);
 
 	widget.contract = function(selector) {
-		var items = widget.$rendered.find(selector);
+		var items = widget.$(selector);
 		
 		if (items.is(':visible')) items.fadeOut('slow');
 		else items.fadeIn('slow');
