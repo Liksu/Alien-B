@@ -17,13 +17,14 @@ var CM = new (function () {
 
 	self.children = {};
 	self.settings = {
-		  revision: +("$Revision: 654 $".match(/\d+/)[0])
+		  version: "alpha.4.1"
 		, lang: 'en'
 		, mode: 'default'
 		, theme: 'default'
 		, re: {
 				  includes: new RegExp('/\\*((?:use)|(?:include)) (\\w+) (\\w+)(?: (\\w+\\.\\w+))?\\*/', 'gi')
 				, plugin_settings: new RegExp('/\\*set (\\w+) (.+)\\*/', 'gim')
+				, global_css_tag: /^global\/(\w+\.css)$/i
 		}
 	};
 	self.stash = {};       // Data hash for processing template
@@ -160,7 +161,7 @@ var CM = new (function () {
 				} else if (!arguments.length) {
 					// remove all children
 					// call self for each tray
-					for (var tray_id = 0; tray_id < self.wo.children.length; tray_id++) self.children.remove(tray_id);
+					for (var tray_id = 1; tray_id <= self.wo.children.length; tray_id++) self.children.remove(tray_id);
 				}
 			}
 		};
@@ -223,7 +224,7 @@ var CM = new (function () {
 
 			self.format_data();
 
-//			log(self.wo.tray, self.parent.trays);
+//			log('RENDER. self tray: ', self.wo.tray, '; parent trays: ', self.parent.trays);
 			//TODO: append in right place
 			if (self.wo.tray) $(self.parent.trays[self.wo.tray].selector, self.parent.$rendered).append( self.$rendered );
 
@@ -353,6 +354,10 @@ var CM = new (function () {
 			function do_use() {
 //				log('all do_use:', self.wo.widget_id, plugin_name, CM.p[plugin_name]);
 				CM.p[plugin_name].call(self, options);
+				if (CM.p[plugin_name].prototype.settings['load_styles']) {
+					self.css.push({ file: CM.p[plugin_name].prototype.settings['load_styles'], olink: 'plugins.res', stash: {module_name: plugin_name, silent: true} });
+					CM.update_css('add', self);
+				};
 			};
 
 			if (!CM.p[plugin_name]) {
@@ -426,7 +431,7 @@ var CM = new (function () {
 			try {
 				files = eval('(' + (html || 'undefined') + ')');
 			} catch(e) {
-				if (e instanceof ReferenceError) files = html.match(/\w+\.css/g);
+				if (e instanceof ReferenceError) files = html.match(/[\w\/\.]+\.css/g);
 			}
 
 			if (!files) return true;
@@ -626,7 +631,7 @@ var CM = new (function () {
 
 		if (!f || f.has('render') || f.has('stash') || f.has('get_stash'))
 		self.get_stash = function() {
-			var stash = CM.exstash(self.wo.data, {voc: self.wo.voc, img_prefix: u.t(CM.settings.urls.img, CM.exstash({widget_name: 'action'}))});
+			var stash = CM.exstash(self.wo.data, {voc: self.wo.voc, img_prefix: u.t(CM.settings.urls.widget.img, CM.exstash({widget_name: self.wo.widget_name}))});
 			if (self.stash_robber && typeof self.stash_robber == 'function') stash = self.stash_robber(stash);
 			return stash;
 		};
@@ -762,28 +767,61 @@ var CM = new (function () {
 		self.include(false, 'plugins', module_name, template_name, cb);
 	};
 
-	self.update_css = function(action, widget) {
+	self.update_css = function(action, widget, passed_olink, passed_stash_up) {
 		if (!action || !widget) return false;
 
 		widget.css.each(function(i, file) {
-			var file_id = 'css_' + file.replace(/\./g, '_');
+			var stash_up = passed_stash_up || {};
+			var olink = passed_olink;
+
+			if (typeof file != 'string') {
+				$.extend(stash_up, file.stash, passed_stash_up);
+				if (!olink) olink = file.olink;
+				file = file.file;
+			}
+
+			// prepare path
+			var path = file, exstash = CM.exstash({template_name: widget.wo.template_name, widget_name: widget.wo.widget_name, widget_id: widget.wo.widget_id}, stash_up);
+
+			// global css
+			if (CM.settings.re.global_css_tag.test(file)) path = [ 'css', RegExp.$1 ];
+			// olink in filename
+			else if (/\//.test(file)) {
+				path = file.split(/\/(?!.*\/)/); // split to olink and filename, like: 'urls/widget/tmpl/some.css' => ["urls/widget/tmpl", "some.css"]
+				if (!path[0]) path[0] = 'widget/css'; // for files like /some.css
+				path[0] = path[0].replace(/\//g, '.');
+			}
+			// olink passed as params
+			else if (olink) {
+				path = [ olink, file ];
+			}
+			// link to widget
+			else path = [ 'widget.css', file ];
+
+			//now path is array [olink, filename]
+			path[0] = u.t(u.olink(CM.settings.urls, path[0]), exstash);
+			if (!/\/$/.test(path[0]) && !/^\//.test(path[1])) path[0] += '/';
+			// now path[0] is string with full path to file and path[1] - file name only
+
+			exstash.filename = path[1];
+			var filepath = path.join('');
+			var selector = 'link[href="' + filepath + '"]';
 
 			if (action == 'add') {
-				if (!CM.s.s[file]) CM.s.s[file] = {widgets: {}, linked_to: {}};
+				if (!CM.s.s[filepath]) CM.s.s[filepath] = {widgets: {}, linked_to: {}};
 
-				CM.s.s[file].widgets[widget.wo.widget_name + '/' + widget.wo.template_name] = true;
-				CM.s.s[file].linked_to[widget.wo.widget_id] = true;
+				CM.s.s[filepath].widgets[widget.wo.widget_name + '/' + widget.wo.template_name] = true;
+				CM.s.s[filepath].linked_to[widget.wo.widget_id] = true;
 
-				widget.css.push(file);
-
-				if (!$('#' + file_id).length) $('<link>').attr({href: u.t(CM.settings.urls.css, CM.exstash({template_name: widget.wo.template_name, widget_name: widget.wo.widget_name, widget_id: widget.wo.widget_id})) + file, type: 'text/css', rel: 'stylesheet', id: file_id}).appendTo('head');
+				if (!$(selector).length) $('<link>').attr({href: filepath, type: 'text/css', rel: 'stylesheet'}).appendTo('head');
 				else {
-					log('duplicate loading ' + file + ' in ' + u.object_keys(CM.s.s[file].widgets).map(function(e, i) {return e+'.html'}).join(', '));
-					$('#' + file_id + '[disabled]').enable();
+					if (!stash_up.silent && u.object_keys(CM.s.s[filepath].linked_to).length > 1) log('duplicate loading ' + filepath + ' in ' + u.object_keys(CM.s.s[filepath].widgets).map(function(e, i) {return e+'.html'}).join(', '));
+					$(selector + '[disabled]').enable();
 				}
 			} else {
-				delete CM.s.s[file].linked_to[widget.wo.widget_id];
-				if (!u.object_keys(CM.s.s[file].linked_to).length) $('#' + file_id).disable();
+
+				delete CM.s.s[filepath].linked_to[widget.wo.widget_id];
+				if (!u.object_keys(CM.s.s[filepath].linked_to).length) $(selector).disable();
 			}
 		});
 	};
@@ -793,13 +831,16 @@ var CM = new (function () {
 				+ ' data-widget_name'   + '="' + wo.widget_name      + '"'
 				+ ' data-template_name' + '="' + wo.template_name    + '"'
 				+ ' class'              + '="' + 'w-'+wo.widget_name + '"'
-				+ '">'
+				+ '>'
 				+ template
 				+ '</div>';
 	};
 
 	self.ver = function() {
-		return self.settings.version + '.' + self.settings.build + '/' + self.settings.revision;
+		return self.settings.product_version
+			? self.settings.product_version + ' (Alien-B: ' + self.settings.version + ')'
+			: self.settings.version
+			;
 	};
 
 	self.p = {
@@ -987,9 +1028,14 @@ CM.include = function(construct, type, module_name, template_name, cb) {
 	}
 	if (!self[type]) self[type] = {};
 
-	var js_url = (CM.settings.urls[type] && CM.settings.urls[type].js) || CM.settings.urls.modules;
-	var tmpl_url = CM.settings.urls[type] && CM.settings.urls[type].tmpl;
-	var gather_id;
+	var js_url, tmpl_url, res_url, gather_id;
+
+	if (CM.settings.urls[type]) {
+		js_url = CM.settings.urls[type].js;
+		tmpl_url = CM.settings.urls[type].tmpl;
+		res_url = CM.settings.urls[type].res;
+	}
+	else js_url = CM.settings.urls.modules;
 
 	function load_tmpl(template_name) {
 		if (template_name == null || typeof template_name != 'string') template_name = module_name;
@@ -1015,6 +1061,7 @@ CM.include = function(construct, type, module_name, template_name, cb) {
 					tmp_function.prototype.settings = link.settings;
 					tmp_function.prototype.templates = link.templates;
 					if (link.tmpl) tmp_function.prototype.tmpl = link.tmpl;
+					if (res_url) tmp_function.prototype.urls = {res: u.t(res_url, {module_name: module_name, include_type: type})};
 					self[type][module_name] = construct ? new (tmp_function)(CM) : tmp_function;
 				} catch(e) { log('Load module [' + type + '].' + module_name + ' error: ', e) }
 				if (cb && typeof cb == 'function') cb(self[type][module_name]);
@@ -1198,4 +1245,6 @@ CM.start = function(settings) {
 	delete CM.children;
 
 	CM.root.set_trays();
+	CM.root.set_css();
+	CM.root.set_events();
 };

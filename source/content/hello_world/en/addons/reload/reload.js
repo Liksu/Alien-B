@@ -8,6 +8,7 @@ function(options) {
 	var widget = this;
 	var settings = {
 		css: {}
+		, resources: CM.p['reload'].prototype.urls.res
 	};
 	$.extend(true, settings, options);
 
@@ -23,3 +24,4 @@ function(options) {
 };
 
 /*set load_template true*/
+/*set load_styles reload.css*/

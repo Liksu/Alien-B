@@ -73,6 +73,7 @@ var Fixture = new function() {
 /**
  * Function for simplest addition of fixture
  * @copyright Peter Bortchagovsky
+ * @require utils::rand
  */
 Fixture.short = function(uri, data, delay, status) {
 	if (status == undefined) status = 200;

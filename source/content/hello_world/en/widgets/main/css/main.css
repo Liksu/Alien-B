@@ -1,0 +1,38 @@
+.w-hello_world {
+	position: relative;
+	margin: -25px 0 0 -150px;
+	width: 350px;
+	top: 50%;
+	left: 50%;
+	border: 1px solid navy;
+	background-color: #CCF;
+	padding: 4px;
+	cursor: move;
+	font: 80% Verdana, Tahoma, Arial;
+}
+
+.w-hello_world > span {
+	display: block;
+	text-align: center;
+}
+
+.w-hello_world .caption {
+	text-align: center;
+	background-color: navy;
+	color: white;
+	font-weight: bold;
+	padding: 4px;
+	margin-bottom: 0.5em;
+	cursor: default;
+}
+
+.w-hello_world .version {
+	cursor: pointer;
+}
+
+.w-hello_world .wink {
+	margin-top: -2px;
+	position: absolute;
+	right: 8px;
+	cursor: pointer;
+}

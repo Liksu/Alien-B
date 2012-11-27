@@ -214,7 +214,14 @@ Array.prototype.map = function(callback) {return $.map(this, callback)};
 u.has = function(arr, obj) {
     return (arr.indexOf(obj) != -1);
 };
-Array.prototype.has = function(obj) {return u.has(this, obj)};
+Array.prototype.has = function(obj) {
+	if (obj instanceof Array) {
+		var result = true;
+		for (var i = 0; i < obj.length; i++) result = result && u.has(this, obj[i]);
+		return result;
+	}
+	return u.has(this, obj)
+};
 String.prototype.has = function(obj) {return u.has(this, obj)};
 
 

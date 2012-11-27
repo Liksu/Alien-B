@@ -2,7 +2,6 @@
 
 <html>
 	<head>
-		<!-- base href="http://liksu.kiev.ua/chat/" / -->
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 		<title>Loading...</title>
@@ -20,7 +19,7 @@
 		{"foo": "bar"} // use $.live
 	</script>
 
-	<script type="text/set-css">main.css</script> <!-- name or names of css files to load -->
+	<script type="text/set-css">global/main.css</script> <!-- name or names of css files to load -->
 
 	<script type="text/javascript" src="js/lib/jquery/jquery.js"></script>
 	<script type="text/javascript" src="js/lib/jquery/jquery.tmpl.min.js"></script>
@@ -44,8 +43,7 @@
 		$(document).ready(function() {
 			/*** start ***/
 			CM.start({
-			  build: "3.23"
-			, version: "alpha"
+			  product_version: 'sample'
 			, required_plugins: 'alert'
 			, default_children: [[null]] // array like [[widget_id]], where first [] = array of trays, second [] = array of widgets in tray. [[null]] set core to ask server for default children.
 			, urls: {
@@ -54,14 +52,15 @@
 					, events: '/cgi-bin/chat/events.pl?method=' // do not forget to add method!
 					, modules: 'js/mod/${module_name}.js'
 					, plugins: {
-						js: 'js/plugins/${module_name}.js'
+						js: 'content/${mode}/${lang}/addons/${module_name}/${module_name}.js'
 						, tmpl: 'content/${mode}/${lang}/addons/${module_name}/${template_name}.html'
 					}
-					, css: 'content/${mode}/${lang}/schemes/${theme}/' // add local css file path
-					, img: 'content/${mode}/${lang}/widgets/${widget_name}/img' // add slash and local image name
+					, css: 'content/${mode}/${lang}/schemes/${theme}/' // global theme styles, add local css file path
 					, widget: {
 						tmpl: 'content/${mode}/${lang}/widgets/${widget_name}/tmpl/${template_name}.html'
 						, js: 'content/${mode}/${lang}/widgets/${widget_name}/${widget_name}.js'
+						, img: 'content/${mode}/${lang}/widgets/${widget_name}/img' // add slash and local image name
+						, css: 'content/${mode}/${lang}/widgets/${widget_name}/css' // local widget styles
 					}
 				}
 			});

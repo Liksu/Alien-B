@@ -73,3 +73,4 @@ function(options) {
 
 };
 /*set load_template true*/
+/*set load_styles alert.css*/

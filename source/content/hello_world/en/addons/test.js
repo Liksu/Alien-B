@@ -14,4 +14,5 @@ function(options) {
 	key             value           description
 	load_template   true            load template for plugin, named like plugin
 	load_template   template_name	load template with different name
+	load_styles     css_filename    add styles
 */

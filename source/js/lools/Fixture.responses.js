@@ -26,20 +26,41 @@ Fixture.short('/api/getSettings', {
 
 
 Fixture.short('/api/getObject', function() {
-	return arguments[1].data.id == 'hello_world'
-		? {
-			widget_id: 'hello_world'
-			, widget_name: 'hello_world'
-			, template_name: 'main'
-			, need_data: false
-			, draw_if_null: true
-			, children: []
-			, data: {}
-			, tray: 1
-			, trays: []
-			, voc: { title: 'Demo page' }
-			}
-		: {
-			children: [['hello_world']]
-			}
+	var json = {};
+
+	switch (arguments[1].data.id) {
+		case 'hello_world':
+			json = {
+				widget_id: 'hello_world'
+				, widget_name: 'hello_world'
+				, template_name: 'main'
+				, need_data: false
+				, draw_if_null: true
+				, children: []
+				, data: {}
+				, tray: 1
+				, trays: []
+				, voc: { title: 'Demo page' }
+			};
+			break;
+		case 'second':
+			json = {
+				widget_id: 'second'
+				, widget_name: 'second'
+				, template_name: 'main'
+				, need_data: false
+				, draw_if_null: true
+				, children: []
+				, data: {}
+				, tray: 1
+				, trays: []
+				, voc: {  }
+			};
+			break;
+		default:
+			json = {
+				children: [['hello_world', 'second']]
+			};
+	};
+	return json;
 });

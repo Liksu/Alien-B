@@ -43,7 +43,12 @@ function(CM) {
 			new_wo.widget_id = to_widget_id;
 			widget.children.append(new_wo);
 		}
-	});
+	}
+//	, function() {
+//		var widget = this;
+//		widget.css.push('main.css');
+//	}
+	);
 
 	self.after_load = function() {
 	};

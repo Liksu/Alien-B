@@ -36,8 +36,8 @@ log = function() { if (typeof window["xdebug"] != "undefined") {
 	if ( xdebug.has("timings") ) str.unshift(u.getDT() + " > ");
 
 	if (window['console'] != undefined) {
-		if (console.log.apply) log = function() {console.log.apply(console, arguments)};
-		else log = Function.prototype.bind.call(console.log, console);
+//		if (console.log.apply) log = function() {console.log.apply(console, arguments)};
+//		else log = Function.prototype.bind.call(console.log, console);
 
 		if (typeof console.debug == "function" && xdebug.has("debug")) {
 			for (var i = 2; i < str.length; i += 2) {
@@ -62,7 +62,7 @@ u.format00 = function(n, count, symb) {
 	if (!symb) symb = '0';
 	for (var i = count; i>0; i--) s = symb + s;
 	return s.substring(s.length-count)
-}
+};
 u.getDate_DM = function() {return [Date().split(" ")[2], Date().split(" ")[1]].join(" ")} // Funny :)
 u.getTime = function() {return new Date().getTime()}
 u.getDT = function() {
@@ -76,4 +76,4 @@ u.getDT = function() {
 		+ u.format00(d.getSeconds())		+ "."
 		+ u.format00(d.getMilliseconds(), 3)
 		;
-}
+};
