@@ -1,1 +1,0 @@
-@db = ('dbi:mysql:DB', 'user', 'password', {'AutoCommit' => 1, 'RaiseError' => 1, 'PrintError' =>1, 'mysql_enable_utf8' => 1});

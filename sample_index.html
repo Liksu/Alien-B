@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<title>Loading...</title>
+	</head>
+
+	<body>
+        <img src="imgs/loading.gif" style="position: relative; top: 50%; left: 50%; margin-top: -7px; margin-left: -104px;">
+	</body>
+
+	<script type="text/set-trays"> <!-- json array of object, key = selector, value = array of widget_type  -->
+		[ {"body": ["main"]} ]
+	</script>
+
+	<script type="text/set-css">global/global.css</script> <!-- name or names of css files to load -->
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.tmpl.min.js"></script>
+
+	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+
+	<script type="text/javascript" src="/alien/libs/fixture.js"></script>
+	<script type="text/javascript" src="/alien/libs/json2.js"></script>
+	<script type="text/javascript" src="/alien/core/utils.js"></script>
+	<script type="text/javascript" src="/alien/debug/debug.js"></script>
+	<script type="text/javascript" src="/alien/debug/Fixture.responses.js"></script>
+	<script type="text/javascript" src="/alien/core/CM.js"></script> <!-- core of CM widget -->
+
+	 <!-- data for CM widget -->
+	<script>
+		xdebug = ["log", "timings", 'debug'];
+
+		$(document).ready(function() {
+			/*** start ***/
+			CM.start({
+			  product_version: "sample"
+			, required_plugins: 'alert field_checker'
+			, default_children: [[null]] // array like [[widget_id]], where first [] = array of trays, second [] = array of widgets in tray. [[null]] set core to ask server for default children.
+			, urls: {
+					def: '/api/status'
+					, api: '/api/${method}'
+					, events: '/events/' // do not forget to add method!
+					, modules: '/alien/modules/${module_name}.js'
+					, local_modules: {js: 'js/modules/${module_name}.js'}
+					, plugins: {
+						js: '/alien/plugins/${module_name}/${module_name}.js'
+						, tmpl: '/alien/plugins/${module_name}/${template_name}.html'
+						, res: '/alien/plugins/${module_name}/resources'
+					}
+					, css: 'styles/' // global theme styles, add local css file path
+					, widget: {
+						tmpl:  'content/${widget_name}/tmpl/${template_name}.html'
+						, js:  'content/${widget_name}/${widget_name}.js'
+						, img: 'content/${widget_name}/img' // add slash and local image name
+						, css: 'content/${widget_name}/css/' // local widget styles
+					}
+				}
+			});
+
+			CM.root.wo.children = CM.settings.default_children; // not need really, but let it bee ;)
+
+
+			// start page processing
+
+			var gather_id = CM.gather({
+				link: {}
+				, properties: [
+					  'local_modules:project_spec'
+					, 'mod:transport'
+					, 'settings'
+					, 'register'
+				]
+				, cb: function() {
+					CM.local_modules['project_spec'].after_load();
+					delete CM.local_modules['project_spec'];
+
+					//clear body
+					CM.root.trays.each(function(i, tray) { if (i) CM.root.$(tray.selector).html('') });
+
+					CM.root.children.load_all();
+				}
+			});
+
+
+			$.when(
+				// primary loading
+
+				$.get_json({method: 'getSettings'}, function(json) {
+						$.extend(CM.settings, json);
+						$.extend(CM.stash, json);
+						CM.s.q['gather'][gather_id].link['settings'] = true;
+						CM.gather(gather_id);
+				}),
+
+				$.get_json({method_url: CM.settings.urls.events + 'register'}, function(json) {
+						CM.stash.inbox_id = CM.instance_id = json.agentId;
+						(u.get_gather(gather_id))['register'] = true;
+						CM.gather(gather_id);
+				})
+			).then(function() {
+				// secondary loading
+
+				// simple module loading
+				$.each({transport: 'mod', project_spec: 'local_modules', reload: 'plugin'}, function(name, type) {
+					var cb = function() { u.set_to_gather(gather_id, type + ':' + name, true) };
+
+					if (type == 'mod') CM.load_module(name, cb);
+					else if (type == 'local_modules') CM.include(true, 'local_modules', name, cb);
+					else CM.load_plugin(name, null, cb);
+				})
+
+			});
+
+
+		});
+
+	</script>
+
+</html>
+<!-- this html is template for CM widget -->
