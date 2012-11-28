@@ -43,23 +43,9 @@ Fixture.short('/api/getObject', function() {
 				, voc: { title: 'Demo page' }
 			};
 			break;
-		case 'second':
-			json = {
-				widget_id: 'second'
-				, widget_name: 'second'
-				, template_name: 'main'
-				, need_data: false
-				, draw_if_null: true
-				, children: []
-				, data: {}
-				, tray: 1
-				, trays: []
-				, voc: {  }
-			};
-			break;
 		default:
 			json = {
-				children: [['hello_world', 'second']]
+				children: [['hello_world']]
 			};
 	};
 	return json;
