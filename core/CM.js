@@ -17,7 +17,7 @@ var CM = new (function () {
 
 	self.children = {};
 	self.settings = {
-		  version: "alpha.4.1"
+		  version: "alpha.4.2"
 		, lang: 'en'
 		, mode: 'default'
 		, theme: 'default'
@@ -25,6 +25,7 @@ var CM = new (function () {
 				  includes: new RegExp('/\\*((?:use)|(?:include)) (\\w+) (\\w+)(?: (\\w+\\.\\w+))?\\*/', 'gi')
 				, plugin_settings: new RegExp('/\\*set (\\w+) (.+)\\*/', 'gim')
 				, global_css_tag: /^global\/(\w+\.css)$/i
+				, split_to_filename: /\/(?!.*\/)/
 		}
 	};
 	self.stash = {};       // Data hash for processing template
@@ -787,7 +788,7 @@ var CM = new (function () {
 			if (CM.settings.re.global_css_tag.test(file)) path = [ 'css', RegExp.$1 ];
 			// olink in filename
 			else if (/\//.test(file)) {
-				path = file.split(/\/(?!.*\/)/); // split to olink and filename, like: 'urls/widget/tmpl/some.css' => ["urls/widget/tmpl", "some.css"]
+				path = file.split(CM.settings.re.split_to_filename); // split to olink and filename, like: 'urls/widget/tmpl/some.css' => ["urls/widget/tmpl", "some.css"]
 				if (!path[0]) path[0] = 'widget/css'; // for files like /some.css
 				path[0] = path[0].replace(/\//g, '.');
 			}
@@ -1028,14 +1029,32 @@ CM.include = function(construct, type, module_name, template_name, cb) {
 	}
 	if (!self[type]) self[type] = {};
 
-	var js_url, tmpl_url, res_url, gather_id;
+	var js_url, tmpl_url, res_url, gather_id, olink;
 
-	if (CM.settings.urls[type]) {
-		js_url = CM.settings.urls[type].js;
-		tmpl_url = CM.settings.urls[type].tmpl;
-		res_url = CM.settings.urls[type].res;
+	if (/\//.test(module_name)) {
+		olink = module_name.split(CM.settings.re.split_to_filename);
+		module_name = olink[1];
+		olink[0] = olink[0].replace(/\//g, '.');
+	}
+	else olink = [type];
+
+	olink = u.olink(CM.settings.urls, olink[0]);
+	if (olink) {
+		if (typeof olink == 'string') js_url = olink;
+		else {
+			js_url = olink.js;
+			tmpl_url = olink.tmpl;
+			res_url = olink.res;
+		}
 	}
 	else js_url = CM.settings.urls.modules;
+
+//	if (CM.settings.urls[type]) {
+//		js_url = CM.settings.urls[type].js;
+//		tmpl_url = CM.settings.urls[type].tmpl;
+//		res_url = CM.settings.urls[type].res;
+//	}
+//	else js_url = CM.settings.urls.modules;
 
 	function load_tmpl(template_name) {
 		if (template_name == null || typeof template_name != 'string') template_name = module_name;
