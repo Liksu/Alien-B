@@ -63,7 +63,7 @@ function(options) {
 	};
 
 
-	widget.trigg('append:after', function() {
+	widget.trigg('appendToParent:after', function() {
 		$.each({input: 'keyup', textarea: 'keyup', select: 'change'}, function(selector, eventType) {
 			widget.$rendered.delegate(selector, eventType, function(e) {
 				widget.field_check( $(e.target) )

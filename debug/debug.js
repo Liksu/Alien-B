@@ -44,6 +44,12 @@ log = function() { if (typeof window["xdebug"] != "undefined") {
 				if (!((typeof str[i-1] == 'string' && (str[i-1].match(/[:,=]\s*$/) || str[i-1].match(/\s+$/))) || (typeof str[i] == 'string' && (str[i].match(/^\s+/))))) str.splice(i, 0, ', ');
 				else str.splice(i, 0, '');
 			}
+			i = 0;
+			while (i < str.length-1) {
+				if (typeof str[i] == 'string' && typeof str[i+1] == 'string') {
+					str[i] += str.splice(i+1, 1);
+				} else i++;
+			}
 			if (console['debug']) console.debug.apply(console, str);
 			else if (console['log']) console.log.apply(console, str);
 		}
@@ -65,15 +71,23 @@ u.format00 = function(n, count, symb) {
 };
 u.getDate_DM = function() {return [Date().split(" ")[2], Date().split(" ")[1]].join(" ")} // Funny :)
 u.getTime = function() {return new Date().getTime()}
-u.getDT = function() {
+u.parseTime = function() {
 	var d = new Date();
-	return ""
-//		+ d.getFullYear()			+ "."
-//		+ u.format00(d.getMonth()*1+1)		+ "."
-//		+ u.format00(d.getDate())		+ " "
-		+ u.format00(d.getHours())		+ ":"
-		+ u.format00(d.getMinutes())		+ ":"
-		+ u.format00(d.getSeconds())		+ "."
-		+ u.format00(d.getMilliseconds(), 3)
-		;
+	return [
+		  d.getFullYear()
+		, u.format00(d.getMonth()*1+1)
+		, u.format00(d.getDate())
+		, u.format00(d.getHours())
+		, u.format00(d.getMinutes())
+		, u.format00(d.getSeconds())
+		, u.format00(d.getMilliseconds(), 3)
+	]
+};
+u.getDT = function() {
+	var d = u.parseTime();
+	return d[3] + ":" + d[4] + ":" + d[5] + "." + d[6];
+};
+u.getSQLDT = function() {
+	var d = u.parseTime();
+	return d.splice(0, 3).join('-') + ' ' + d.splice(0, 3).join(':');
 };

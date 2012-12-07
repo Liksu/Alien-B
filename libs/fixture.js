@@ -75,14 +75,14 @@ var Fixture = new function() {
  * @copyright Peter Bortchagovsky
  * @require utils::rand
  */
-Fixture.short = function(uri, data, delay, status) {
+Fixture['short'] = function(uri, data, delay, status) {
 	if (status == undefined) status = 200;
 	if (delay == undefined) delay = (10).rand() + 2;
 	Fixture.add(uri, function() {
-		log('Fixture called for ' + arguments[1].url);
+		log(u.t('Fixture called for ${url}{{if data.type}}?${data.type}=${data.id}{{/if}}', arguments[1]));
 		var response = [status, 'success', {json: typeof data == 'function' ? data.apply(this, arguments) : data}];
 		response.delay = delay;
-    
+  
 		return response;
 	});
 }

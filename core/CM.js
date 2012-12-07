@@ -79,11 +79,13 @@ var CM = new (function () {
 		self.children.append = function(widget_id, every_cb) {
 			log(self.wo.widget_id + '.append: ', widget_id);
 			CM.load(widget_id, self, function(widget) {
-				self.trigg('append:before');
+				self.trigg('appendChild:before');
+				widget.trigg('appendToParent:before')
 				log('append ', (widget.wo && widget.wo.widget_id) + ' to ' + (self.wo && self.wo.widget_id));//, self, widget);
 				if (!CM.s.c[widget.wo.widget_id] || !CM.s.c[widget.wo.widget_id].length) {
 					log('no widget in cache, append(' + widget.wo.widget_id + ') in process');
-					self.trigg('append');
+					self.trigg('appendChild');
+					widget.trigg('appendToParent');
 
 					// prepare
 					widget.set_css();
@@ -104,7 +106,8 @@ var CM = new (function () {
 					//TODO: call done when children's loaded
 					//widget.done();
 //					widget.wo.unboxed = true;
-					widget.trigg('append:after');
+					widget.trigg('appendToParent:after');
+					self.trigg('appendChild:after');
 				}
 			});
 		};
@@ -241,6 +244,7 @@ var CM = new (function () {
 				}});
 			}
 
+			// pay attention: will call into before rerender:after
 			self.trigg('render:after');
 			return self;
 		};
@@ -253,14 +257,22 @@ var CM = new (function () {
 		//TODO: rerender + partial rerender (without children)
 		self.rerender = function(partial) {
 			log(self.wo.widget_id + '.rerender');
-//	    	$.tmplItem(self.$rendered).update();
-//	    	self.$rendered = $('#'+self.wo.widget_id); // there is no id in new item!!!!!!!!! WTF!
 			self.trigg('rerender:before');
-			self.$rendered.html('').remove();
-			self.render();
+//			self.$rendered.html('').remove();
+//			self.render();
+
+			self.stash = self.get_stash();
+			// save children into document.createDocumentFragment(), and after rerender put them back into trays
+			try {
+				self.$rendered.html( $.tmpl(CM.s.w[self.wo.widget_name].tmpl[self.wo.template_name], self.stash).html() );
+			} catch(e) {
+				log('Render error: ', {error: e, widget: self.wo.widget_id, template: CM.s.w[self.wo.widget_name].tmpl[self.wo.template_name], stash: self.stash});
+			}
+
 			self.trigg('rerender');
 			self.update_data();
 			self.format_data();
+			self.trigg('render:after', 'rerender');
 			self.trigg('rerender:after');
 			return self
 		};
@@ -521,16 +533,16 @@ var CM = new (function () {
 					});
 				});
 
-			} else if (typeof self.ear_triggers[null] == 'function' && !(cb && cb.has && cb.has('silent'))) {
+			} else if (typeof self.ear_triggers['null'] == 'function' && !(cb && cb.has && cb.has('silent'))) {
 				// run default trigger
-				self.ear_triggers[null].apply(self, arguments);
+				self.ear_triggers['null'].apply(self, arguments);
 			}
 
 
 			return self;
 		};
 		if (!f || f.has('triggers') || f.has('ear:null'))
-		self.ear_triggers[null] = function(msg, data, sender, cb) {
+		self.ear_triggers['null'] = function(msg, data, sender, cb) {
 //			u.dump(
 //				  (self.wo ? self.wo.widget_name + '(' + self.wo.widget_id + ')' : self)
 //				+ '.ear: '
@@ -1241,7 +1253,7 @@ CM.start = function(settings) {
 	$.extend(true, CM.settings, settings);
 
 	CM.W(CM, 'ear trigg ear:null');
-	CM.ear_triggers[null] = function(msg, data) { u.dump('CM.ear( ', arguments, ' )') };
+	CM.ear_triggers['null'] = function(msg, data) { u.dump('CM.ear( ', arguments, ' )') };
 
 	// root widget with default settings
 
